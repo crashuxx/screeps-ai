@@ -4,11 +4,14 @@ export enum UnitRole {
     WORKER_HARVESTER,
     WORKER_BUILDER,
     WORKER_UPGRADER,
+    WARRIOR,
 
     SIZE
 }
 
 export interface Unit {
+    init(): void;
+
     canHandle(creep: Creep): boolean;
 
     prepare(creep: Creep): void;

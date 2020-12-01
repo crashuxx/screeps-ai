@@ -1,10 +1,10 @@
 export class Utils {
     public static distanceBetweenPoints(x1: number, x2: number, y1: number, y2: number): number {
-        return Math.floor(Math.hypot(x1 - x2, y1 - y2));
+        return Math.round(Math.hypot(x1 - x2, y1 - y2));
     }
 
     public static distanceBetweenPosition(a: RoomPosition, b: RoomPosition): number {
-        return Math.floor(Math.hypot(a.x - b.x, a.y - b.y));
+        return Math.round(Math.hypot(a.x - b.x, a.y - b.y));
     }
 
     public static distance(a: RoomObject, b: RoomObject): number {

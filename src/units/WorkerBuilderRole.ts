@@ -11,6 +11,9 @@ enum Status {
 }
 
 export class WorkerBuilderRole implements Unit {
+    init(): void {
+    }
+
     public canHandle(creep: Creep): boolean {
         return creep.memory.role == UnitRole.WORKER_BUILDER;
     }

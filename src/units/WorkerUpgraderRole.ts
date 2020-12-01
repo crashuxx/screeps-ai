@@ -12,6 +12,10 @@ enum Status {
 export class WorkerUpgraderRole implements Unit {
     private static targets: { [id: string]: number } = {};
 
+    init(): void {
+        WorkerUpgraderRole.targets = {}
+    }
+
     public canHandle(creep: Creep): boolean {
         return creep.memory.role == UnitRole.WORKER_UPGRADER;
     }
