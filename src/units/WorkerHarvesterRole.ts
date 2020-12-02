@@ -13,13 +13,6 @@ export class WorkerHarvesterRole extends AbstractUnit {
         return creep.memory.role == UnitRole.WORKER_HARVESTER;
     }
 
-    public prepare(creep: Creep): void {
-        let targetId = creep.memory.targetId;
-        if (targetId != undefined) {
-            this.markTarget(targetId);
-        }
-    }
-
     public handle(creep: Creep): void {
         if (creep.memory.status == Status.IDLE) {
             creep.memory.targetId = undefined;

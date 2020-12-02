@@ -27,7 +27,12 @@ export abstract class AbstractUnit implements Unit {
 
     abstract canHandle(creep: Creep): boolean;
 
-    abstract prepare(creep: Creep): void;
+    public prepare(creep: Creep): void {
+        let targetId = creep.memory.targetId;
+        if (targetId != undefined) {
+            this.markTarget(targetId);
+        }
+    }
 
     abstract handle(creep: Creep): void;
 
