@@ -3,24 +3,24 @@
 // memory extension samples
 
 interface CreepMemory {
-  status: number;
-  targetId?: string;
-  role: number;
-  statusSince?: number;
+    status: number;
+    targetId?: string;
+    role: number;
+    statusSince?: number;
 }
 
 interface Memory {
-  uuid: number;
-  log: any;
+    uuid: number;
+    log: any;
 }
 
 // `global` extension samples
 declare namespace NodeJS {
-  interface Global {
-    log: any;
-  }
+    interface Global {
+        log: any;
+    }
 }
 
 interface Position {
-  pos: RoomPosition
+    pos: RoomPosition
 }

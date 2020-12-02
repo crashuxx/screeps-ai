@@ -21,14 +21,25 @@ export class WarriorRole implements Unit {
     }
 
     public handle(creep: Creep): void {
-        if (creep.memory.status == Status.IDLE) {
-            let target = creep.room.find(FIND_HOSTILE_CREEPS).find(() => true);
-            console.log(target)
+        if (creep.memory.status == Status.IDLE || creep.memory.status == Status.MOVE_TO_RED_FLAG) {
+           /* let target = creep.room.find(FIND_HOSTILE_SPAWNS)
+                .sort((a,b) => Utils.distance(creep, a) - Utils.distance(creep, b))
+                .find(()=>true);
+
             if (target == undefined) {
                 // @ts-ignore
-                target = creep.room.find(FIND_HOSTILE_STRUCTURES).find(() => true)
-                console.log(target)
+                target = creep.room.find(FIND_HOSTILE_CREEPS)
+                    .sort((a,b) => Utils.distance(creep, a) - Utils.distance(creep, b))
+                    .find(()=>true);
             }
+
+            if (target == undefined) {
+                // @ts-ignore
+                target = creep.room.find(FIND_HOSTILE_STRUCTURES, { filter: s => s.structureType != STRUCTURE_CONTROLLER})
+                    .sort((a,b) => Utils.distance(creep, a) - Utils.distance(creep, b))
+                    .find(()=>true);
+            }
+
             if (target != undefined) {
                 if (Utils.distance(creep, target) <= 1) {
                     creep.memory.status = Status.ATTACK;
@@ -37,7 +48,7 @@ export class WarriorRole implements Unit {
                     creep.memory.status = Status.MOVE;
                     creep.memory.targetId = target.id;
                 }
-            } else {
+            } else*/ {
                 creep.memory.status = Status.MOVE_TO_RED_FLAG;
                 creep.memory.targetId = undefined;
             }
@@ -84,13 +95,18 @@ export class WarriorRole implements Unit {
     }
 
     public static spawn(room: Room) {
-        room.find(FIND_MY_STRUCTURES, {filter: object => object.structureType == STRUCTURE_SPAWN})
+        room.find(FIND_MY_STRUCTURES, { filter: object => object.structureType == STRUCTURE_SPAWN })
             .first()
             .cast<StructureSpawn>()
             .filter(s => s.room.energyCapacityAvailable >= 420)
             .filter(s => s.room.energyAvailable >= 420)
             .ifPresent(s => {
-                s.spawnCreep([TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE, ATTACK,ATTACK,ATTACK], Game.time.toString(), {memory: {status: 0, role: UnitRole.WARRIOR}});
+                s.spawnCreep([TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK], Game.time.toString(), {
+                    memory: {
+                        status: 0,
+                        role: UnitRole.WARRIOR
+                    }
+                });
             });
     }
 }

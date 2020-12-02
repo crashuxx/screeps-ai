@@ -2,6 +2,8 @@ declare global {
     interface Array<T> {
         first(): Optional<T>;
         isNotEmpty(): boolean;
+        ifEmptyConcat(func: () => T[]): T[];
+        cast<R>(): R[];
     }
 }
 
@@ -15,6 +17,21 @@ if (!Array.prototype.isNotEmpty) {
     // @ts-ignore
     Array.prototype.isNotEmpty = function() {
         return this.length != 0;
+    };
+}
+if (!Array.prototype.ifEmptyConcat) {
+    // @ts-ignore
+    Array.prototype.ifEmptyConcat = function(func: () => []) {
+        if (!this.isNotEmpty()) {
+            return func();
+        }
+        return this;
+    };
+}
+if (!Array.prototype.cast) {
+    // @ts-ignore
+    Array.prototype.cast = function() {
+        return this;
     };
 }
 

@@ -4,11 +4,14 @@ import { WorkerUniversalRole } from "./units/WorkerUniversalRole";
 import { WarriorRole } from "./units/WarriorRole";
 import "./ext.ts";
 import { WorkerHarvesterRole } from "./units/WorkerHarvesterRole";
-import { Optional } from "./ext";
+import { KeeperRole } from "./units/KeeperRole";
+import { GameUtils } from "./GameUtils";
+import { Utils } from "./utils/Utils";
+//import { EventEmitter } from "events";
 
-const WORKER_SLAVE_FACTOR = 0.5;
+let handlers = [new WorkerUniversalRole(), new WarriorRole(), new WorkerHarvesterRole(), new KeeperRole()];
 
-let handlers = [new WorkerUniversalRole(), new WarriorRole(), new WorkerHarvesterRole()];
+//new EventEmitter()
 
 export const loop = ErrorMapper.wrapLoop(() => {
     for (const name in Memory.creeps) {
@@ -28,7 +31,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
     for (let creep of Object.values(Game.creeps)) {
         // @ts-ignore
-        if (creep.ticksToLive >= 100) {
+        if (creep.ticksToLive >= 10) {
             creepCounter[creep.memory.role]++;
         }
 
@@ -49,18 +52,32 @@ export const loop = ErrorMapper.wrapLoop(() => {
         }
     }
 
+    Game.spawns['Spawn1']?.room.find(FIND_HOSTILE_CREEPS)
+        .sort((a,b) => Utils.distance(Game.spawns['Spawn1'], a) - Utils.distance(Game.spawns['Spawn1'], b))
+        .first()
+        .ifPresent(h => {
+            Game.spawns['Spawn1']?.room.find<StructureTower>(FIND_STRUCTURES, {filter: object => object.structureType == STRUCTURE_TOWER})
+                .forEach(t => {
+                    t.attack(h);
+                })
+        })
+        .orElseDo(() => {
+            Game.spawns['Spawn1']?.room.find(FIND_STRUCTURES)
+                .filter(s => s.hits + 1000 < s.hitsMax)
+                .first()
+                .ifPresent(h => {
+                    Game.spawns['Spawn1']?.room.find<StructureTower>(FIND_STRUCTURES, {filter: object => object.structureType == STRUCTURE_TOWER})
+                        .forEach(t => {
+                            t.repair(h);
+                        })
+                })
+        })
+
     let creepCount = Object.values(Game.creeps).length;
 
-    if (creepCounter[UnitRole.WORKER_UNIVERSAL] >= 4 && Game.spawns["Spawn1"].room.energyCapacityAvailable > 550) {
+    if (creepCounter[UnitRole.WORKER_UNIVERSAL] > 1 && Game.spawns["Spawn1"].room.energyCapacityAvailable > 550) {
         if (creepCounter[UnitRole.WORKER_UNIVERSAL] < 6) {
-            Game.spawns["Spawn1"].spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK], Game.time.toString(), {
-                memory: {
-                    status: 0,
-                    role: UnitRole.WORKER_UNIVERSAL
-                }
-            });
-        } else if (creepCounter[UnitRole.WORKER_UNIVERSAL] < 8) {
-            Game.spawns["Spawn1"].spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK], Game.time.toString(), {
+            Game.spawns["Spawn1"].spawnCreep([MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK], Game.time.toString(), {
                 memory: {
                     status: 0,
                     role: UnitRole.WORKER_UNIVERSAL
@@ -68,7 +85,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
             });
         } else if (creepCounter[UnitRole.WORKER_HARVESTER] < 2) {
             WorkerHarvesterRole.spawn(Game.spawns["Spawn1"].room);
-        } else {
+        } else if (creepCounter[UnitRole.WORKER_HARVESTER] > 0 && creepCounter[UnitRole.KEEPER] < 1) {
+            KeeperRole.spawn(Game.spawns["Spawn1"].room);
+        } else if (creepCounter[UnitRole.WARRIOR] < 4) {
             //WarriorRole.spawn(Game.spawns["Spawn1"].room);
         }
     } else if (creepCount < 8) {

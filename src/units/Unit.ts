@@ -2,11 +2,10 @@ export enum UnitRole {
     SLAVE = 0,
     WORKER_UNIVERSAL,
     WORKER_HARVESTER,
-    WORKER_BUILDER,
-    WORKER_UPGRADER,
     WARRIOR,
+    KEEPER,
 
-    SIZE
+    SIZE,
 }
 
 export interface Unit {

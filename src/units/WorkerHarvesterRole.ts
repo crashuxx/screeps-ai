@@ -34,9 +34,9 @@ export class WorkerHarvesterRole implements Unit {
 
             creep.room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
                 //.filter(s => s.pos.findInRange(FIND_SOURCES, 1).filter(s => WorkerHarvesterRole.weightTarget(s.id) == 0).isNotEmpty())
-                .sort(WorkerHarvesterRole.weightTargetComparator)
+                .filter(source => WorkerHarvesterRole.weightTarget(source.id) == 0)
+                .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).length == 0)
                 .first()
-                .peek(console.log)
                 .ifPresent(source => {
                     WorkerHarvesterRole.markTarget(source.id);
 
@@ -116,7 +116,7 @@ export class WorkerHarvesterRole implements Unit {
             .filter(s => s.room.energyCapacityAvailable >= 700)
             .filter(s => s.room.energyAvailable >= 700)
             .ifPresent(s => {
-                s.spawnCreep([MOVE, CARRY, WORK, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
+                s.spawnCreep([MOVE, WORK, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
                     memory: {
                         status: 0,
                         role: UnitRole.WORKER_HARVESTER

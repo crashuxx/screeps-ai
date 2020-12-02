@@ -9,17 +9,15 @@ enum Status {
     FIND_PLACE_TO_DISCHARGE,
     TRANSFER,
     MOVE_TO_TRANSFER,
-    MOVE_TO_AND_WITHDRAW,
-    WITHDRAW,
-    MOVE_TO_AND_PICKUP,
-    PICKUP
+    MOVE_TO_AND_LOAD,
+    LOAD,
 }
 
 export class WorkerUniversalRole implements Unit {
     private static targets: { [id: string]: number } = {};
 
     init(): void {
-        WorkerUniversalRole.targets = {}
+        WorkerUniversalRole.targets = {};
     }
 
     public canHandle(creep: Creep): boolean {
@@ -51,36 +49,20 @@ export class WorkerUniversalRole implements Unit {
             }
         }
 
-        if (creep.memory.status == Status.WITHDRAW) {
-            GameUtils.getObjectById<StructureContainer>(creep.memory.targetId)
-                .orElseDo(() => {
-                    creep.memory.status = Status.IDLE;
-                    creep.memory.targetId = undefined;
-                })
-                .filter(container => container.store.getUsedCapacity(RESOURCE_ENERGY) > 50)
-                .ifPresent(container => creep.withdraw(container, RESOURCE_ENERGY));
+        if (creep.memory.status == Status.LOAD) {
+            GameUtils.getObjectById<StructureContainer | Resource>(creep.memory.targetId)
+                .filter(container => ((container instanceof StructureContainer) ? container.store.getUsedCapacity(RESOURCE_ENERGY) : container.amount) > 50)
+                .ifPresent(container => {
+                    if (container instanceof StructureContainer) creep.withdraw(container, RESOURCE_ENERGY);
+                    else creep.pickup(container);
+                });
 
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.status = Status.FIND_PLACE_TO_DISCHARGE;
                 creep.memory.targetId = undefined;
             } else {
                 creep.memory.status = Status.IDLE;
-            }
-        }
-
-        if (creep.memory.status == Status.PICKUP) {
-            GameUtils.getObjectById<Resource>(creep.memory.targetId)
-                .orElseDo(() => {
-                    creep.memory.status = Status.IDLE;
-                    creep.memory.targetId = undefined;
-                })
-                .ifPresent(container => creep.pickup(container));
-
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.status = Status.FIND_PLACE_TO_DISCHARGE;
                 creep.memory.targetId = undefined;
-            } else {
-                creep.memory.status = Status.IDLE;
             }
         }
 
@@ -103,59 +85,36 @@ export class WorkerUniversalRole implements Unit {
                     WorkerUniversalRole.markTarget(source.id);
                 }
 
-                let pickup = false
-
-                creep.room.find(FIND_DROPPED_RESOURCES, {filter: r => r.resourceType == RESOURCE_ENERGY})
+                creep.room.find(FIND_DROPPED_RESOURCES, { filter: r => r.resourceType == RESOURCE_ENERGY })
                     .filter(c => c.amount >= creep.store.getCapacity())
+                    .cast<Resource | Structure>()
+                    .ifEmptyConcat(() => {
+                        return creep.room.find<StructureContainer>(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
+                            .filter(c => c.store.getUsedCapacity() > 100);
+                    })
                     .sort((a, b) => Utils.distance(creep, a) - Utils.distance(creep, b))
                     .sort(WorkerUniversalRole.weightTargetComparator)
                     .first()
                     .ifPresent(resource => {
                         WorkerUniversalRole.markTarget(resource.id);
-                        creep.memory.status = Status.MOVE_TO_AND_PICKUP;
+                        creep.memory.status = Status.MOVE_TO_AND_LOAD;
                         creep.memory.targetId = resource.id;
-                        pickup = true;
                     });
-
-                if (!pickup) {
-                    creep.room.find<StructureContainer>(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
-                        .filter(c => c.store.getUsedCapacity() > 100)
-                        .sort(WorkerUniversalRole.weightTargetComparator)
-                        .first()
-                        .ifPresent(container => {
-                            WorkerUniversalRole.markTarget(container.id);
-                            creep.memory.status = Status.MOVE_TO_AND_WITHDRAW;
-                            creep.memory.targetId = container.id;
-                        });
-                }
             } else {
                 creep.memory.status = Status.FIND_PLACE_TO_DISCHARGE;
+                creep.memory.targetId = undefined;
             }
         }
 
-        if (creep.memory.status == Status.MOVE_TO_AND_WITHDRAW) {
+        if (creep.memory.status == Status.MOVE_TO_AND_LOAD) {
             GameUtils.getObjectById<StructureContainer>(creep.memory.targetId)
+                .ifPresent(container => {
+                    if (Utils.distance(creep, container) > 1) creep.moveTo(container);
+                    else creep.memory.status = Status.LOAD;
+                })
                 .orElseDo(() => {
                     creep.memory.status = Status.IDLE;
                     creep.memory.targetId = undefined;
-                })
-                .filter(container => Utils.distance(creep, container) > 1)
-                .ifPresent(container => creep.moveTo(container))
-                .orElseDo(() => {
-                    creep.memory.status = Status.WITHDRAW;
-                });
-        }
-
-        if (creep.memory.status == Status.MOVE_TO_AND_PICKUP) {
-            GameUtils.getObjectById<StructureContainer>(creep.memory.targetId)
-                .orElseDo(() => {
-                    creep.memory.status = Status.IDLE;
-                    creep.memory.targetId = undefined;
-                })
-                .filter(container => Utils.distance(creep, container) > 1)
-                .ifPresent(container => creep.moveTo(container))
-                .orElseDo(() => {
-                    creep.memory.status = Status.PICKUP;
                 });
         }
 
@@ -223,7 +182,7 @@ export class WorkerUniversalRole implements Unit {
         return (WorkerUniversalRole.targets[id] != undefined) ? WorkerUniversalRole.targets[id] : 0;
     }
 
-    private static weightTargetComparator(a: RoomObject|Resource, b: RoomObject|Resource): number {
+    private static weightTargetComparator(a: RoomObject | Resource, b: RoomObject | Resource): number {
         // @ts-ignore
         return WorkerUniversalRole.weightTarget(a.id) - WorkerUniversalRole.weightTarget(b.id);
     }

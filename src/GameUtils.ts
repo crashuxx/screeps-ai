@@ -29,9 +29,8 @@ export class GameUtils {
     public static constructionsAndControllerAndExtension(room: Room): Structure[] {
         let objects = [...this.constructionsAndController(room)];
         for (let value of Object.values(Game.structures)) {
-            if (value.structureType == STRUCTURE_EXTENSION && value.room?.name == room.name) {
+            if ((value.structureType == STRUCTURE_EXTENSION || value.structureType == STRUCTURE_TOWER) && value.room?.name == room.name) {
                 if ((<StructureExtension>value).store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
-                    // @ts-ignore
                     objects.push(value);
                 }
             }
@@ -66,7 +65,7 @@ export class GameUtils {
         let roads = room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_ROAD || s.structureType == STRUCTURE_CONTAINER });
         for (let structure of roads) {
             if (structure.room?.name == room.name) {
-                if ((structure.hits + 1000) < structure.hitsMax) {
+                if ((structure.hits + 3000) < structure.hitsMax) {
                     objects.push(structure);
                 }
             }
