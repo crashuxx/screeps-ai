@@ -1,5 +1,5 @@
 import { Utils } from "../utils/Utils";
-import { Unit, UnitRole } from "./Unit";
+import { AbstractUnit, UnitRole } from "./Unit";
 import { GameUtils } from "../GameUtils";
 
 
@@ -9,14 +9,11 @@ enum Status {
     GIVE_RESOURCES_TO,
 }
 
-export class KeeperRole implements Unit {
+export class KeeperRole extends AbstractUnit {
     readonly spawnAndExtensionStructureTypes = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER];
 
     canHandle(creep: Creep): boolean {
         return creep.memory.role == UnitRole.KEEPER;
-    }
-
-    init(): void {
     }
 
     prepare(creep: Creep): void {
@@ -88,17 +85,6 @@ export class KeeperRole implements Unit {
                     .orElseDo(() => this.setStatus(creep, Status.IDLE));
                 break;
         }
-    }
-
-    setStatus(creep: Creep, status: Status): void {
-        creep.memory.status = status;
-        creep.memory.statusSince = Game.time;
-    }
-
-    setStatusAndTarget(creep: Creep, status: Status, target: Structure): void {
-        creep.memory.status = status;
-        creep.memory.statusSince = Game.time;
-        creep.memory.targetId = target.id;
     }
 
     static spawn(room: Room) {
