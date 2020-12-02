@@ -29,7 +29,7 @@ export class WorkerHarvesterRole extends AbstractUnit {
                 .filter(source => this.weightTarget(source.id) == 0)
                 .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).length == 0)
                 .first()
-                .ifPresent(source => {
+                .ifPresent(source => {console.log(source)
                     if (Utils.sourceInRange(creep, source)) {
                         this.setStatusAndTarget(creep, Status.HARVESTING, source);
                     } else {
@@ -46,8 +46,7 @@ export class WorkerHarvesterRole extends AbstractUnit {
                         .first()
                         .ifPresent(source => this.setStatusAndTarget(creep, Status.HARVESTING, source))
                         .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
-                })
-                .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
+                });
         }
 
         switch (creep.memory.status) {
