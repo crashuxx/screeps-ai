@@ -1,40 +1,40 @@
-export enum UnitRole {
-    SLAVE = 0,
+export enum Roles {
+    RESERVED_ = 0,
     WORKER_UNIVERSAL,
-    WORKER_HARVESTER,
+    HARVESTER,
     WARRIOR,
     KEEPER,
 
     SIZE,
 }
 
-export interface Unit {
+export interface Role {
     init(): void;
 
-    canHandle(creep: Creep): boolean;
+    accept(creep: Creep): boolean;
 
-    prepare(creep: Creep): void;
+    update(creep: Creep): void;
 
-    handle(creep: Creep): void;
+    execute(creep: Creep): void;
 }
 
-export abstract class AbstractUnit implements Unit {
+export abstract class AbstractRole implements Role {
     protected targets: { [id: string]: number } = {};
 
     public init(): void {
         this.targets = {};
     }
 
-    abstract canHandle(creep: Creep): boolean;
+    abstract accept(creep: Creep): boolean;
 
-    public prepare(creep: Creep): void {
+    public update(creep: Creep): void {
         let targetId = creep.memory.targetId;
         if (targetId != undefined) {
             this.markTarget(targetId);
         }
     }
 
-    abstract handle(creep: Creep): void;
+    abstract execute(creep: Creep): void;
 
     protected setStatus(creep: Creep, status: number): void {
         creep.memory.status = status;

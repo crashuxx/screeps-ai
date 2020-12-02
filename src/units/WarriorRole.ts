@@ -1,5 +1,5 @@
 import { Utils } from "../utils/Utils";
-import { Unit, UnitRole } from "./Unit";
+import { Role, Roles } from "./Role";
 
 enum Status {
     IDLE = 0,
@@ -9,18 +9,18 @@ enum Status {
     ATTACK,
 }
 
-export class WarriorRole implements Unit {
-    public canHandle(creep: Creep): boolean {
-        return creep.memory.role == UnitRole.WARRIOR;
+export class WarriorRole implements Role {
+    public accept(creep: Creep): boolean {
+        return creep.memory.role == Roles.WARRIOR;
     }
 
     init(): void {
     }
 
-    public prepare(creep: Creep): void {
+    public update(creep: Creep): void {
     }
 
-    public handle(creep: Creep): void {
+    public execute(creep: Creep): void {
         if (creep.memory.status == Status.IDLE || creep.memory.status == Status.MOVE_TO_RED_FLAG) {
            /* let target = creep.room.find(FIND_HOSTILE_SPAWNS)
                 .sort((a,b) => Utils.distance(creep, a) - Utils.distance(creep, b))
@@ -104,7 +104,7 @@ export class WarriorRole implements Unit {
                 s.spawnCreep([TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK], Game.time.toString(), {
                     memory: {
                         status: 0,
-                        role: UnitRole.WARRIOR
+                        role: Roles.WARRIOR
                     }
                 });
             });

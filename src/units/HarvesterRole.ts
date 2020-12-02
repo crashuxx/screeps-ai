@@ -1,5 +1,5 @@
 import { Utils } from "../utils/Utils";
-import { AbstractUnit, UnitRole } from "./Unit";
+import { AbstractRole, Roles } from "./Role";
 import { GameUtils } from "../GameUtils";
 
 enum Status {
@@ -8,12 +8,12 @@ enum Status {
     HARVESTING
 }
 
-export class WorkerHarvesterRole extends AbstractUnit {
-    public canHandle(creep: Creep): boolean {
-        return creep.memory.role == UnitRole.WORKER_HARVESTER;
+export class HarvesterRole extends AbstractRole {
+    public accept(creep: Creep): boolean {
+        return creep.memory.role == Roles.HARVESTER;
     }
 
-    public handle(creep: Creep): void {
+    public execute(creep: Creep): void {
         if (creep.memory.status == Status.IDLE) {
             creep.memory.targetId = undefined;
 
@@ -67,7 +67,7 @@ export class WorkerHarvesterRole extends AbstractUnit {
                 s.spawnCreep([MOVE, WORK, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
                     memory: {
                         status: 0,
-                        role: UnitRole.WORKER_HARVESTER
+                        role: Roles.HARVESTER
                     }
                 });
             });

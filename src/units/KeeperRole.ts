@@ -1,5 +1,5 @@
 import { Utils } from "../utils/Utils";
-import { AbstractUnit, UnitRole } from "./Unit";
+import { AbstractRole, Roles } from "./Role";
 import { GameUtils } from "../GameUtils";
 
 
@@ -9,14 +9,14 @@ enum Status {
     GIVE_RESOURCES_TO,
 }
 
-export class KeeperRole extends AbstractUnit {
+export class KeeperRole extends AbstractRole {
     readonly spawnAndExtensionStructureTypes = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER];
 
-    canHandle(creep: Creep): boolean {
-        return creep.memory.role == UnitRole.KEEPER;
+    accept(creep: Creep): boolean {
+        return creep.memory.role == Roles.KEEPER;
     }
 
-    prepare(creep: Creep): void {
+    update(creep: Creep): void {
         if (creep.memory.status == Status.IDLE) {
             creep.room.find<StructureSpawn | StructureExtension | StructureTower>(FIND_STRUCTURES, { filter: object => this.spawnAndExtensionStructureTypes.find(v => v == object.structureType) })
                 .filter(structure => structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
@@ -51,13 +51,13 @@ export class KeeperRole extends AbstractUnit {
 
     private thinkFindContainerWithResources(creep: Creep) {
         creep.room.find<StructureContainer>(FIND_STRUCTURES, { filter: object => STRUCTURE_CONTAINER == object.structureType })
-            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 600)
+            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 900)
             .sort((a, b) => a.store.getUsedCapacity(RESOURCE_ENERGY) - b.store.getUsedCapacity(RESOURCE_ENERGY))
             .first()
             .ifPresent(structure => this.setStatusAndTarget(creep, Status.TAKE_RESOURCES_FROM, structure));
     }
 
-    handle(creep: Creep): void {
+    execute(creep: Creep): void {
         switch (creep.memory.status) {
             case Status.TAKE_RESOURCES_FROM:
                 GameUtils.getObjectById<StructureStorage | StructureContainer>(creep.memory.targetId)
@@ -95,7 +95,7 @@ export class KeeperRole extends AbstractUnit {
                 spawn.spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], Game.time.toString(), {
                     memory: {
                         status: 0,
-                        role: UnitRole.KEEPER
+                        role: Roles.KEEPER
                     }
                 });
             });
