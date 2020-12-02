@@ -31,7 +31,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
     for (let creep of Object.values(Game.creeps)) {
         // @ts-ignore
-        if (creep.ticksToLive >= 10) {
+        if (creep.ticksToLive >= 14) {
             creepCounter[creep.memory.role]++;
         }
 
@@ -98,5 +98,5 @@ export const loop = ErrorMapper.wrapLoop(() => {
             }
         });
     }
-
+    console.log(Game.cpu.getUsed());
 });

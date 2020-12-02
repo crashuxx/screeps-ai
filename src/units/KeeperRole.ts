@@ -27,7 +27,7 @@ export class KeeperRole implements Unit {
                 .first()
                 .ifPresent(structure => {
                     if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
-                        this.setStatusAndType(creep, Status.GIVE_RESOURCES_TO, structure);
+                        this.setStatusAndTarget(creep, Status.GIVE_RESOURCES_TO, structure);
                     } else {
                         this.thinkFindClosestResources(creep);
                     }
@@ -35,7 +35,7 @@ export class KeeperRole implements Unit {
                 .orElseDo(() => {
                     if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                         if (creep.room.storage) {
-                            this.setStatusAndType(creep, Status.GIVE_RESOURCES_TO, creep.room.storage);
+                            this.setStatusAndTarget(creep, Status.GIVE_RESOURCES_TO, creep.room.storage);
                         }
                     } else {
                         this.thinkFindContainerWithResources(creep);
@@ -49,7 +49,7 @@ export class KeeperRole implements Unit {
             .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 100)
             .sort((a, b) => Utils.distance(creep, a) - Utils.distance(creep, b))
             .first()
-            .ifPresent(structure => this.setStatusAndType(creep, Status.TAKE_RESOURCES_FROM, structure));
+            .ifPresent(structure => this.setStatusAndTarget(creep, Status.TAKE_RESOURCES_FROM, structure));
     }
 
     private thinkFindContainerWithResources(creep: Creep) {
@@ -57,7 +57,7 @@ export class KeeperRole implements Unit {
             .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 600)
             .sort((a, b) => a.store.getUsedCapacity(RESOURCE_ENERGY) - b.store.getUsedCapacity(RESOURCE_ENERGY))
             .first()
-            .ifPresent(structure => this.setStatusAndType(creep, Status.TAKE_RESOURCES_FROM, structure));
+            .ifPresent(structure => this.setStatusAndTarget(creep, Status.TAKE_RESOURCES_FROM, structure));
     }
 
     handle(creep: Creep): void {
@@ -95,7 +95,7 @@ export class KeeperRole implements Unit {
         creep.memory.statusSince = Game.time;
     }
 
-    setStatusAndType(creep: Creep, status: Status, target: Structure): void {
+    setStatusAndTarget(creep: Creep, status: Status, target: Structure): void {
         creep.memory.status = status;
         creep.memory.statusSince = Game.time;
         creep.memory.targetId = target.id;

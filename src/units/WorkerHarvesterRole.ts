@@ -6,15 +6,14 @@ import { GameUtils } from "../GameUtils";
 enum Status {
     IDLE = 0,
     MOVE_TO_HARVESTING_ZONE,
-    HARVESTING,
-    DROP_TO_CONTAINER,
+    HARVESTING
 }
 
 export class WorkerHarvesterRole implements Unit {
     private static targets: { [id: string]: number } = {};
 
     init(): void {
-        WorkerHarvesterRole.targets = {}
+        WorkerHarvesterRole.targets = {};
     }
 
     public canHandle(creep: Creep): boolean {
@@ -32,67 +31,44 @@ export class WorkerHarvesterRole implements Unit {
         if (creep.memory.status == Status.IDLE) {
             creep.memory.targetId = undefined;
 
+            //@TODO only containers with source next-door
             creep.room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
-                //.filter(s => s.pos.findInRange(FIND_SOURCES, 1).filter(s => WorkerHarvesterRole.weightTarget(s.id) == 0).isNotEmpty())
                 .filter(source => WorkerHarvesterRole.weightTarget(source.id) == 0)
                 .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).length == 0)
                 .first()
                 .ifPresent(source => {
-                    WorkerHarvesterRole.markTarget(source.id);
-
-                    creep.memory.targetId = source.id;
-                    creep.memory.statusSince = Game.time;
-
                     if (Utils.sourceInRange(creep, source)) {
-                        creep.memory.status = Status.HARVESTING;
+                        this.setStatusAndTarget(creep, Status.HARVESTING, source);
                     } else {
-                        creep.memory.status = Status.MOVE_TO_HARVESTING_ZONE;
+                        this.setStatusAndTarget(creep, Status.MOVE_TO_HARVESTING_ZONE, source);
                     }
                 });
-        }
-
-        if (creep.memory.status == Status.HARVESTING) {
-            GameUtils.getObjectById<Source>(creep.memory.targetId)
-                .ifPresent(source => {
-                   // if (creep.store.getFreeCapacity(RESOURCE_ENERGY) != 0) {
-                        creep.harvest(source);
-                  //  } else if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                   //     creep.memory.status = Status.DROP_TO_CONTAINER;
-                  //  }
-                });
-        }
-
-        if (creep.memory.status == Status.DROP_TO_CONTAINER) {
-            creep.pos.findInRange(FIND_STRUCTURES, 1, { filter: object => object.structureType == STRUCTURE_CONTAINER })
-                .sort(container => Utils.distance(creep, container))
-                .first()
-                .ifPresent(container => {
-                    creep.transfer(container, RESOURCE_ENERGY);
-                    creep.memory.status = Status.HARVESTING;
-                });
-            // .orElseDo(() => creep.say(":O"));
         }
 
         if (creep.memory.status == Status.MOVE_TO_HARVESTING_ZONE) {
             GameUtils.getObjectById<Source>(creep.memory.targetId)
+                .filter(target => Utils.distance(creep, target) == 0)
                 .ifPresent(source => {
-                    if (Utils.distance(creep, source) == 0) {
-                        creep.pos.findInRange(FIND_SOURCES, 1)
-                            .first()
-                            .ifPresent(source => {
-                                creep.memory.targetId = source.id;
-                                creep.memory.status = Status.HARVESTING;
-                            }).orElseDo(() => {
-                            creep.memory.status = Status.IDLE
-                        });
-                    } else {
-                        creep.moveTo(source);
-                    }
+                    creep.pos.findInRange(FIND_SOURCES, 1)
+                        .first()
+                        .ifPresent(source => this.setStatusAndTarget(creep, Status.HARVESTING, source))
+                        .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
                 })
-                .orElseDo(() => {
-                    creep.memory.status = Status.IDLE;
-                    creep.memory.targetId = undefined;
-                });
+                .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
+        }
+
+        switch (creep.memory.status) {
+            case Status.MOVE_TO_HARVESTING_ZONE:
+                GameUtils.getObjectById<Source>(creep.memory.targetId)
+                    .ifPresent(target => creep.moveTo(target))
+                    .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
+                break;
+
+            case Status.HARVESTING:
+                GameUtils.getObjectById<Source>(creep.memory.targetId)
+                    .ifPresent(target => creep.harvest(target))
+                    .orElseDo(() => this.setStatusAndClearTarget(creep, Status.IDLE));
+                break;
         }
     }
 
@@ -123,5 +99,26 @@ export class WorkerHarvesterRole implements Unit {
                     }
                 });
             });
+    }
+
+    setStatus(creep: Creep, status: Status): void {
+        creep.memory.status = status;
+        creep.memory.statusSince = Game.time;
+    }
+
+    setStatusAndClearTarget(creep: Creep, status: Status): void {
+        creep.memory.status = status;
+        creep.memory.statusSince = Game.time;
+        creep.memory.targetId = undefined;
+    }
+
+    setStatusAndTarget(creep: Creep, status: Status, target: RoomObject): void {
+        creep.memory.status = status;
+        creep.memory.statusSince = Game.time;
+        // @ts-ignore
+        creep.memory.targetId = target.id;
+
+        // @ts-ignore
+        WorkerHarvesterRole.markTarget(target.id);
     }
 }
