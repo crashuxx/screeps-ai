@@ -1,7 +1,6 @@
 import { Utils } from "../utils/Utils";
-import { Unit, UnitRole } from "./Unit";
+import { AbstractUnit, UnitRole } from "./Unit";
 import { GameUtils } from "../GameUtils";
-
 
 enum Status {
     IDLE = 0,
@@ -9,13 +8,7 @@ enum Status {
     HARVESTING
 }
 
-export class WorkerHarvesterRole implements Unit {
-    private static targets: { [id: string]: number } = {};
-
-    init(): void {
-        WorkerHarvesterRole.targets = {};
-    }
-
+export class WorkerHarvesterRole extends AbstractUnit {
     public canHandle(creep: Creep): boolean {
         return creep.memory.role == UnitRole.WORKER_HARVESTER;
     }
@@ -23,7 +16,7 @@ export class WorkerHarvesterRole implements Unit {
     public prepare(creep: Creep): void {
         let targetId = creep.memory.targetId;
         if (targetId != undefined) {
-            WorkerHarvesterRole.markTarget(targetId);
+            this.markTarget(targetId);
         }
     }
 
@@ -33,7 +26,7 @@ export class WorkerHarvesterRole implements Unit {
 
             //@TODO only containers with source next-door
             creep.room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
-                .filter(source => WorkerHarvesterRole.weightTarget(source.id) == 0)
+                .filter(source => this.weightTarget(source.id) == 0)
                 .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).length == 0)
                 .first()
                 .ifPresent(source => {
@@ -72,19 +65,6 @@ export class WorkerHarvesterRole implements Unit {
         }
     }
 
-    private static markTarget(id: string) {
-        WorkerHarvesterRole.targets[id] = (WorkerHarvesterRole.targets[id] != undefined ? (WorkerHarvesterRole.targets[id] + 1) : 1);
-    }
-
-    private static weightTarget(id: string): number {
-        return (WorkerHarvesterRole.targets[id] != undefined) ? WorkerHarvesterRole.targets[id] : 0;
-    }
-
-    private static weightTargetComparator(a: RoomObject, b: RoomObject): number {
-        // @ts-ignore
-        return WorkerHarvesterRole.weightTarget(a.id) - WorkerHarvesterRole.weightTarget(b.id);
-    }
-
     public static spawn(room: Room) {
         room.find(FIND_MY_STRUCTURES, { filter: object => object.structureType == STRUCTURE_SPAWN })
             .first()
@@ -99,26 +79,5 @@ export class WorkerHarvesterRole implements Unit {
                     }
                 });
             });
-    }
-
-    setStatus(creep: Creep, status: Status): void {
-        creep.memory.status = status;
-        creep.memory.statusSince = Game.time;
-    }
-
-    setStatusAndClearTarget(creep: Creep, status: Status): void {
-        creep.memory.status = status;
-        creep.memory.statusSince = Game.time;
-        creep.memory.targetId = undefined;
-    }
-
-    setStatusAndTarget(creep: Creep, status: Status, target: RoomObject): void {
-        creep.memory.status = status;
-        creep.memory.statusSince = Game.time;
-        // @ts-ignore
-        creep.memory.targetId = target.id;
-
-        // @ts-ignore
-        WorkerHarvesterRole.markTarget(target.id);
     }
 }

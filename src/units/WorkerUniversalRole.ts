@@ -16,7 +16,7 @@ enum Status {
 export class WorkerUniversalRole implements Unit {
     private static targets: { [id: string]: number } = {};
 
-    init(): void {
+    public init(): void {
         WorkerUniversalRole.targets = {};
     }
 
