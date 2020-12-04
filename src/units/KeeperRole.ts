@@ -12,14 +12,14 @@ enum Status {
 export class KeeperRole extends AbstractRole {
     readonly spawnAndExtensionStructureTypes = [STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER];
 
-    accept(creep: Creep): boolean {
-        return creep.memory.role == Roles.KEEPER;
+    constructor() {
+        super(Roles.KEEPER);
     }
 
     update(creep: Creep): void {
         if (creep.memory.status == Status.IDLE) {
             creep.room.find<StructureSpawn | StructureExtension | StructureTower>(FIND_STRUCTURES, { filter: object => this.spawnAndExtensionStructureTypes.find(v => v == object.structureType) })
-                .filter(structure => structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+                .filter(structure => structure.store.getFreeCapacity(RESOURCE_ENERGY) > (structure.structureType != STRUCTURE_TOWER ? 0 : 250))
                 .sort((a, b) => Utils.distance(creep, a) - Utils.distance(creep, b))
                 .first()
                 .ifPresent(structure => {
@@ -51,7 +51,7 @@ export class KeeperRole extends AbstractRole {
 
     private thinkFindContainerWithResources(creep: Creep) {
         creep.room.find<StructureContainer>(FIND_STRUCTURES, { filter: object => STRUCTURE_CONTAINER == object.structureType })
-            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 900)
+            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 300)
             .sort((a, b) => a.store.getUsedCapacity(RESOURCE_ENERGY) - b.store.getUsedCapacity(RESOURCE_ENERGY))
             .first()
             .ifPresent(structure => this.setStatusAndTarget(creep, Status.TAKE_RESOURCES_FROM, structure));

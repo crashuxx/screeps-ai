@@ -1,5 +1,5 @@
 import { Utils } from "../utils/Utils";
-import { Role, Roles } from "./Role";
+import { AbstractRole, Role, Roles } from "./Role";
 
 enum Status {
     IDLE = 0,
@@ -9,12 +9,10 @@ enum Status {
     ATTACK,
 }
 
-export class WarriorRole implements Role {
-    public accept(creep: Creep): boolean {
-        return creep.memory.role == Roles.WARRIOR;
-    }
+export class WarriorRole extends AbstractRole {
 
-    init(): void {
+    constructor() {
+        super(Roles.WARRIOR);
     }
 
     public update(creep: Creep): void {

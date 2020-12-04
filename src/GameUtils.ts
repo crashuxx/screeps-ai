@@ -4,6 +4,15 @@ export class GameUtils {
     private static constructionsAndControllerMap: { [roomName: string]: Structure[] } = {};
     private static repairStructureMap: { [roomName: string]: Structure[] } = {};
 
+    private static roomSources: { [roomName: string]: Source[] } = {};
+
+    public static findRoomSources(room: Room): Source[] {
+        if (this.roomSources[room.name]) {
+            return this.roomSources[room.name];
+        }
+        return this.roomSources[room.name] = room.find(FIND_SOURCES);
+    }
+
     public static constructionsAndController(room: Room): Structure[] {
         if (this.constructionsAndControllerMap[room.name] != undefined) {
             //return this.constructionsAndControllerMap[room.name];
@@ -15,11 +24,14 @@ export class GameUtils {
             objects.push(room.controller);
         }
 
+        let constructionSiteLimit = 0;
         for (let value of Object.values(Game.constructionSites)) {
             if (value.room?.name == room.name) {
                 // @ts-ignore
                 objects.push(value);
+                constructionSiteLimit++;
             }
+            //if (constructionSiteLimit >= 4) break;
         }
 
         this.constructionsAndControllerMap[room.name] = objects;

@@ -9,20 +9,20 @@ enum Status {
 }
 
 export class HarvesterRole extends AbstractRole {
-    public accept(creep: Creep): boolean {
-        return creep.memory.role == Roles.HARVESTER;
+    constructor() {
+        super(Roles.HARVESTER);
     }
 
-    public execute(creep: Creep): void {
+    public update(creep: Creep): void {
         if (creep.memory.status == Status.IDLE) {
             creep.memory.targetId = undefined;
 
             //@TODO only containers with source next-door
             creep.room.find(FIND_STRUCTURES, { filter: s => s.structureType == STRUCTURE_CONTAINER })
                 .filter(source => this.weightTarget(source.id) == 0)
-                .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).length == 0)
+                .filter(source => creep.room.lookForAt(LOOK_CREEPS, source).filter(c => c.memory.role == Roles.HARVESTER).length == 0)
                 .first()
-                .ifPresent(source => {console.log(source)
+                .ifPresent(source => {
                     if (Utils.sourceInRange(creep, source)) {
                         this.setStatusAndTarget(creep, Status.HARVESTING, source);
                     } else {
@@ -30,7 +30,9 @@ export class HarvesterRole extends AbstractRole {
                     }
                 });
         }
+    }
 
+    public execute(creep: Creep): void {
         if (creep.memory.status == Status.MOVE_TO_HARVESTING_ZONE) {
             GameUtils.getObjectById<Source>(creep.memory.targetId)
                 .filter(target => Utils.distance(creep, target) == 0)
@@ -61,10 +63,15 @@ export class HarvesterRole extends AbstractRole {
         room.find(FIND_MY_STRUCTURES, { filter: object => object.structureType == STRUCTURE_SPAWN })
             .first()
             .cast<StructureSpawn>()
-            .filter(s => s.room.energyCapacityAvailable >= 700)
-            .filter(s => s.room.energyAvailable >= 700)
+            .filter(s => s.room.energyCapacityAvailable >= 550)
+            .filter(s => s.room.energyAvailable >= 550)
             .ifPresent(s => {
-                s.spawnCreep([MOVE, WORK, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
+                let body = [MOVE, WORK, WORK, WORK, WORK, WORK, WORK];
+                if (s.room.energyCapacityAvailable <=650) {
+                    body = [MOVE, WORK, WORK, WORK, WORK, WORK];
+                }
+
+                s.spawnCreep(body, Game.time.toString(), {
                     memory: {
                         status: 0,
                         role: Roles.HARVESTER

@@ -23,8 +23,6 @@ export class Utils {
         if (b instanceof Structure) {
             if (b.structureType == STRUCTURE_CONTROLLER) {
                 range = 3;
-            } else if (b.structureType == STRUCTURE_EXTENSION) {
-                range = 1;
             }
         } else if (b instanceof ConstructionSite) {
             range = 3;

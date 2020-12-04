@@ -1,15 +1,18 @@
 export enum Roles {
     RESERVED_ = 0,
-    WORKER_UNIVERSAL,
+    WORKER,
     HARVESTER,
     WARRIOR,
     KEEPER,
 
+    TMP_CLAIMER,
     SIZE,
 }
 
 export interface Role {
-    init(): void;
+    init(creep: Creep): void;
+
+    died(creep: CreepMemory): void;
 
     accept(creep: Creep): boolean;
 
@@ -20,19 +23,29 @@ export interface Role {
 
 export abstract class AbstractRole implements Role {
     protected targets: { [id: string]: number } = {};
+    private readonly role: Roles;
 
-    public init(): void {
-        this.targets = {};
+    constructor(role: Roles) {
+        this.role = role;
     }
 
-    abstract accept(creep: Creep): boolean;
-
-    public update(creep: Creep): void {
-        let targetId = creep.memory.targetId;
-        if (targetId != undefined) {
-            this.markTarget(targetId);
+    public init(creep: Creep): void {
+        if (creep.memory.targetId) {
+            this.markTarget(creep.memory.targetId);
         }
     }
+
+    public died(creepMemory: CreepMemory): void {
+        if (creepMemory.role == this.role && creepMemory.targetId && this.targets[creepMemory.targetId]) {
+            this.targets[creepMemory.targetId] = Math.max(this.targets[creepMemory.targetId] - 1, 0);
+        }
+    }
+
+    public accept(creep: Creep): boolean {
+        return creep.memory.role == this.role;
+    }
+
+    abstract update(creep: Creep): void;
 
     abstract execute(creep: Creep): void;
 
@@ -42,12 +55,20 @@ export abstract class AbstractRole implements Role {
     }
 
     protected setStatusAndClearTarget(creep: Creep, status: number): void {
+        if (creep.memory.targetId) {
+            this.targets[creep.memory.targetId] = Math.max(this.targets[creep.memory.targetId] - 1, 0);
+        }
+
         creep.memory.status = status;
         creep.memory.statusSince = Game.time;
         creep.memory.targetId = undefined;
     }
 
     protected setStatusAndTarget(creep: Creep, status: number, target: RoomObject): void {
+        if (creep.memory.targetId) {
+            this.targets[creep.memory.targetId] = Math.max(this.targets[creep.memory.targetId] - 1, 0);
+        }
+
         creep.memory.status = status;
         creep.memory.statusSince = Game.time;
         // @ts-ignore
@@ -69,5 +90,4 @@ export abstract class AbstractRole implements Role {
         // @ts-ignore
         return this.weightTarget(a.id) - this.weightTarget(b.id);
     }
-
 }
