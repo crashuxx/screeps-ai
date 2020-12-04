@@ -72,7 +72,9 @@ export const loop = ErrorMapper.wrapLoop(() => {
         .forEach(spawn => {
             let roomCreepCounter = creepCounter[spawn.room.name] || {};
             if (spawn.room.energyCapacityAvailable >= 550) {
-                if ((roomCreepCounter[Roles.WORKER]?.length || 0) < 6) {
+                if (spawn.room.energyCapacityAvailable >= 1400 && (roomCreepCounter[Roles.WORKER]?.length || 0) < 3) {
+                    WorkerRole.spawn(spawn.room, roomCreepCounter);
+                } else if (spawn.room.energyCapacityAvailable < 1400 && (roomCreepCounter[Roles.WORKER]?.length || 0) < 6) {
                     WorkerRole.spawn(spawn.room, roomCreepCounter);
                 } else if ((roomCreepCounter[Roles.HARVESTER]?.length || 0) < 2) {
                     HarvesterRole.spawn(spawn.room);

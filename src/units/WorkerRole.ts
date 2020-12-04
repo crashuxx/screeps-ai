@@ -177,7 +177,11 @@ export class WorkerRole extends AbstractRole {
         let optionalSpawn = room.find<StructureSpawn>(FIND_MY_STRUCTURES, { filter: object => object.structureType == STRUCTURE_SPAWN }).first();
         let workerCount = creepCount[Roles.WORKER]?.length || 0;
 
-        if (workerCount > 0 && room.energyCapacityAvailable >= 800) {
+        if (workerCount > 0 && room.energyCapacityAvailable >= 1400) {
+            optionalSpawn.ifPresent(spawn => spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
+                memory: { status: Status.IDLE, role: Roles.WORKER }
+            }));
+        } else if (workerCount > 0 && room.energyCapacityAvailable >= 800) {
             optionalSpawn.ifPresent(spawn => spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK], Game.time.toString(), {
                 memory: { status: Status.IDLE, role: Roles.WORKER }
             }));

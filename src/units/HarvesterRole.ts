@@ -66,12 +66,7 @@ export class HarvesterRole extends AbstractRole {
             .filter(s => s.room.energyCapacityAvailable >= 550)
             .filter(s => s.room.energyAvailable >= 550)
             .ifPresent(s => {
-                let body = [MOVE, WORK, WORK, WORK, WORK, WORK, WORK];
-                if (s.room.energyCapacityAvailable <=650) {
-                    body = [MOVE, WORK, WORK, WORK, WORK, WORK];
-                }
-
-                s.spawnCreep(body, Game.time.toString(), {
+                s.spawnCreep([MOVE, WORK, WORK, WORK, WORK, WORK], Game.time.toString(), {
                     memory: {
                         status: 0,
                         role: Roles.HARVESTER

@@ -51,7 +51,7 @@ export class KeeperRole extends AbstractRole {
 
     private thinkFindContainerWithResources(creep: Creep) {
         creep.room.find<StructureContainer>(FIND_STRUCTURES, { filter: object => STRUCTURE_CONTAINER == object.structureType })
-            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 300)
+            .filter(structure => structure.store.getUsedCapacity(RESOURCE_ENERGY) >= 700)
             .sort((a, b) => a.store.getUsedCapacity(RESOURCE_ENERGY) - b.store.getUsedCapacity(RESOURCE_ENERGY))
             .first()
             .ifPresent(structure => this.setStatusAndTarget(creep, Status.TAKE_RESOURCES_FROM, structure));
